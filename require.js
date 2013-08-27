@@ -460,12 +460,19 @@ Require.loadPackage = function (dependency, config) {
         return loadedPackages[location];
     };
 
-    config.loadPackage = function (dependency, viaConfig) {
+    config.loadPackage = function (dependency, viaConfig, loading) {
         dependency = normalizeDependency(dependency, viaConfig);
         if (!dependency.location) {
             throw new Error("Can't find dependency: " + JSON.stringify(dependency) + " from " + config.location);
         }
         var location = dependency.location;
+
+        loading = loading || {};
+        if (loading[location]) {
+            return Q();
+        }
+        loading[location] = true;
+
         if (!loadingPackages[location]) {
             loadingPackages[location] = Require.loadPackageDescription(dependency, config)
             .then(function (packageDescription) {
@@ -476,7 +483,14 @@ Require.loadPackage = function (dependency, config) {
                 );
                 var pkg = Require.makeRequire(subconfig);
                 loadedPackages[location] = pkg;
-                return pkg;
+                return Q.all(Object.keys(subconfig.mappings).map(function (prefix) {
+                    var dependency = subconfig.mappings[prefix];
+                    return config.loadPackage(subconfig.mappings[prefix], subconfig, loading);
+                }))
+                .then(function () {
+                    postConfigurePackage(subconfig);
+                })
+                .thenResolve(pkg);
             });
             loadingPackages[location].done();
         }
@@ -653,8 +667,8 @@ function configurePackage(location, description, parent) {
 
     // mappings, link this package to other packages.
     var mappings = description.mappings || {};
-    // dependencies, devDependencies if not in production
-    [description.dependencies, !config.production? description.devDependencies : null]
+    // dependencies, devDependencies if not in production, if not installed by NPM
+    [description.dependencies, description._id || description.production ? null : description.devDependencies]
     .forEach(function (dependencies) {
         if (!dependencies) {
             return;
@@ -682,6 +696,34 @@ function configurePackage(location, description, parent) {
     config.mappings = mappings;
 
     return config;
+}
+
+function postConfigurePackage(config) {
+    var mappings = config.mappings;
+    var prefixes = Object.keys(mappings);
+    prefixes.forEach(function (prefix) {
+        var dependency = mappings[prefix];
+        if (!config.hasPackage(dependency))
+            return;
+        var package = config.getPackage(dependency);
+
+        // reference translators
+        var myTranslators = config.translators = config.translators || {};
+        var theirTranslators = package.config.translators;
+        var extensions = Object.keys(theirTranslators);
+        extensions.forEach(function (extension) {
+            myTranslators[extension] = prefix + "/" + theirTranslators[extension];
+        });
+
+        // reference compilers
+        var myCompilers = config.compilers = config.compilers || {};
+        var theirCompilers = package.config.compilers;
+        var extensions = Object.keys(theirCompilers);
+        extensions.forEach(function (extension) {
+            myCompilers[extension] = prefix + "/" + theirCompilers[extension];
+        });
+
+    });
 }
 
 // Helper functions:
