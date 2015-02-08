@@ -4,3 +4,5 @@ node_js:
 script: npm run $COMMAND
 env:
   - COMMAND=test
+before_install:
+  - npm update -g npm
