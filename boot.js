@@ -1064,10 +1064,10 @@ Require.makeRequire = function (config) {
     function makeRequire(viaId) {
 
         // Main synchronously executing "require()" function
-        var require = function(id) {
+        function require(id) {
             var topId = Identifier.resolve(id, viaId);
             return getExports(topId, viaId);
-        };
+        }
 
         // Asynchronous "require.async()" which ensures async executation
         // (even with synchronous loaders)
@@ -1089,10 +1089,12 @@ Require.makeRequire = function (config) {
         };
 
         require.load = function (id) {
+            id = Identifier.resolve(id, viaId);
             return load(id, viaId);
         };
 
         require.deepLoad = function (id) {
+            id = Identifier.resolve(id, viaId);
             return deepLoad(id, viaId, {});
         };
 
