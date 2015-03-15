@@ -989,14 +989,7 @@ function isAbsolute(location) {
 
 // Extracts dependencies by parsing code and looking for "require" (currently
 // using a regexp)
-Require.parseDependencies = parseDependencies;
-function parseDependencies(text) {
-    var dependsUpon = {};
-    String(text).replace(/(?:^|[^\w\$_.])require\s*\(\s*["']([^"']*)["']\s*\)/g, function(_, id) {
-        dependsUpon[id] = true;
-    });
-    return Object.keys(dependsUpon);
-}
+Require.parseDependencies = require("./parse-dependencies");
 
 var has = Object.prototype.hasOwnProperty;
 
