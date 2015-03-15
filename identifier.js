@@ -43,3 +43,17 @@ function extension(location) {
     }
 }
 
+exports.isRelative = isRelative;
+function isRelative(id) {
+    return /^\.\.?[/]/.test(id);
+}
+
+exports.split = split;
+function split(id) {
+    var match = /([^\/]+)\/(.*)/.exec(id);
+    return {
+        name: match[1],
+        id: match[2]
+    };
+}
+
