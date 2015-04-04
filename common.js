@@ -568,14 +568,8 @@ Require.loadPackage = function (dependency, config) {
 
                 var pkg = Require.makeRequire(subconfig);
                 loadedPackages[location] = pkg;
-                return Q.all(Object.keys(subconfig.mappings).map(function (prefix) {
-                    var dependency = subconfig.mappings[prefix];
-                    return config.loadPackage(dependency, subconfig, loading);
-                }))
-                .then(function () {
-                    postConfigurePackage(subconfig, packageDescription);
-                })
-                .thenResolve(pkg);
+                postConfigurePackage(subconfig, packageDescription);
+                return pkg;
             });
             loadingPackages[location].done();
         }

@@ -1,6 +1,9 @@
 {
     "name": "*",
     "version": "*",
+    "translators": {
+        "text": "mr-text"
+    },
     "dependencies": {
         "mr-text": "*"
     }

@@ -1,7 +1,7 @@
 {
     "name": "*",
     "version": "*",
-    "dependencies": {
-        "mr-foo": "*"
+    "redirect-patterns": {
+        "^(.*)\\.foo$": "foo-$1"
     }
 }

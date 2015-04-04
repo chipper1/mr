@@ -1,6 +1,9 @@
 {
     "name": "*",
     "version": "*",
+    "compilers": {
+        "text": "mr-text"
+    },
     "dependencies": {
         "mr-text": "*"
     }
