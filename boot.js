@@ -43,7 +43,7 @@ global = this;
     Module.prototype.bundle = bundle;
 
     return modules[0].getExports();
-})((function (global){return[["mr","boot/require",{"../require":4,"url":8,"q":14,"./script-params":3},function (require, exports, module){
+})((function (global){return[["mr","boot/require",{"../require":4,"url":8,"q":15,"./script-params":3},function (require, exports, module){
 
 // mr boot/require
 // ---------------
@@ -463,7 +463,7 @@ function getParams(scriptName) {
     return params;
 }
 
-}],["mr","browser",{"./common":5,"url":8,"q":14,"./script":9},function (require, exports, module){
+}],["mr","browser",{"./common":5,"url":8,"q":15,"./script":10},function (require, exports, module){
 
 // mr browser
 // ----------
@@ -701,7 +701,7 @@ function loadIfNotPreloaded(location, definition, preloaded) {
     }
 }
 
-}],["mr","common",{"q":14,"url":8,"./merge":7,"./identifier":6},function (require, exports, module){
+}],["mr","common",{"q":15,"url":8,"./merge":7,"./identifier":6,"./parse-dependencies":9},function (require, exports, module){
 
 // mr common
 // ---------
@@ -1276,14 +1276,8 @@ Require.loadPackage = function (dependency, config) {
 
                 var pkg = Require.makeRequire(subconfig);
                 loadedPackages[location] = pkg;
-                return Q.all(Object.keys(subconfig.mappings).map(function (prefix) {
-                    var dependency = subconfig.mappings[prefix];
-                    return config.loadPackage(dependency, subconfig, loading);
-                }))
-                .then(function () {
-                    postConfigurePackage(subconfig, packageDescription);
-                })
-                .thenResolve(pkg);
+                postConfigurePackage(subconfig, packageDescription);
+                return pkg;
             });
             loadingPackages[location].done();
         }
@@ -1697,14 +1691,7 @@ function isAbsolute(location) {
 
 // Extracts dependencies by parsing code and looking for "require" (currently
 // using a regexp)
-Require.parseDependencies = parseDependencies;
-function parseDependencies(text) {
-    var dependsUpon = {};
-    String(text).replace(/(?:^|[^\w\$_.])require\s*\(\s*["']([^"']*)["']\s*\)/g, function(_, id) {
-        dependsUpon[id] = true;
-    });
-    return Object.keys(dependsUpon);
-}
+Require.parseDependencies = require("./parse-dependencies");
 
 var has = Object.prototype.hasOwnProperty;
 
@@ -1766,6 +1753,20 @@ function extension(location) {
     if (match) {
         return match[1];
     }
+}
+
+exports.isRelative = isRelative;
+function isRelative(id) {
+    return /^\.\.?[/]/.test(id);
+}
+
+exports.split = split;
+function split(id) {
+    var match = /([^\/]+)\/(.*)/.exec(id);
+    return {
+        name: match[1],
+        id: match[2]
+    };
 }
 
 }],["mr","merge",{},function (require, exports, module){
@@ -1852,6 +1853,22 @@ exports.resolve = function resolve(base, relative) {
     return resolved;
 };
 
+}],["mr","parse-dependencies",{},function (require, exports, module){
+
+// mr parse-dependencies
+// ---------------------
+
+"use strict";
+
+module.exports = parseDependencies;
+function parseDependencies(text) {
+    var dependsUpon = {};
+    String(text).replace(/(?:^|[^\w\$_.])require\s*\(\s*["']([^"']*)["']\s*\)/g, function(_, id) {
+        dependsUpon[id] = true;
+    });
+    return Object.keys(dependsUpon);
+}
+
 }],["mr","script",{},function (require, exports, module){
 
 // mr script
@@ -1874,7 +1891,7 @@ function load(location) {
     head.appendChild(script);
 }
 
-}],["pop-iterate","array-iterator",{"./iteration":11},function (require, exports, module){
+}],["pop-iterate","array-iterator",{"./iteration":12},function (require, exports, module){
 
 // pop-iterate array-iterator
 // --------------------------
@@ -1925,7 +1942,7 @@ Iteration.prototype.equals = function (other) {
     );
 };
 
-}],["pop-iterate","object-iterator",{"./iteration":11,"./array-iterator":10},function (require, exports, module){
+}],["pop-iterate","object-iterator",{"./iteration":12,"./array-iterator":11},function (require, exports, module){
 
 // pop-iterate object-iterator
 // ---------------------------
@@ -1950,7 +1967,7 @@ ObjectIterator.prototype.next = function () {
     return new Iteration(this.object[key], false, key);
 };
 
-}],["pop-iterate","pop-iterate",{"./array-iterator":10,"./object-iterator":12},function (require, exports, module){
+}],["pop-iterate","pop-iterate",{"./array-iterator":11,"./object-iterator":13},function (require, exports, module){
 
 // pop-iterate pop-iterate
 // -----------------------
@@ -1977,7 +1994,7 @@ function iterate(iterable, start, stop, step) {
     }
 }
 
-}],["q","q",{"weak-map":15,"pop-iterate":13,"asap":1},function (require, exports, module){
+}],["q","q",{"weak-map":16,"pop-iterate":14,"asap":1},function (require, exports, module){
 
 // q q
 // ---
